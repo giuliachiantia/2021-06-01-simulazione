@@ -5,8 +5,11 @@
 package it.polito.tdp.genes;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.genes.model.Adiacenza;
 import it.polito.tdp.genes.model.Genes;
 import it.polito.tdp.genes.model.Model;
 import javafx.event.ActionEvent;
@@ -30,7 +33,7 @@ public class FXMLController {
     private Button btnCreaGrafo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbGeni"
-    private ComboBox<?> cmbGeni; // Value injected by FXMLLoader
+    private ComboBox<Genes> cmbGeni; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnGeniAdiacenti"
     private Button btnGeniAdiacenti; // Value injected by FXMLLoader
@@ -46,19 +49,68 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	String msg = model.creaGrafo() ;
+    	cmbGeni.getItems().clear() ;
+    	cmbGeni.getItems().addAll(model.getEssentialGenes()) ;
     	
-
+    	txtResult.appendText(msg);
+    	
+        // Ri-abilita i bottoni
+        btnGeniAdiacenti.setDisable(false);
+        btnSimula.setDisable(false);
+        cmbGeni.setDisable(false);
+        txtIng.setDisable(false);
+    	
     }
 
     @FXML
     void doGeniAdiacenti(ActionEvent event) {
-
+    	Genes g = cmbGeni.getValue() ;
+    	
+    	if(g==null) {
+    		txtResult.appendText("ERRORE: scegliere un gene\n");
+    		return ;
+    	}
+    	
+    	List<Adiacenza> adiacenti = model.geniAdiacenti(g);
+    	
+    	txtResult.appendText("Geni adiacenti a: "+g+"\n") ;
+    	if(adiacenti.size()==0) {
+    		txtResult.appendText("NESSUNO\n");
+    	} else {
+    		for(Adiacenza a: adiacenti) {
+    			txtResult.appendText(a.getGene2()+" "+a.getExpressionCorr()+"\n");
+    		}
+    	}
     	
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	Genes start = cmbGeni.getValue() ;
+    	if(start==null) {
+    		txtResult.appendText("ERRORE: scegliere un gene\n");
+    		return ;
+    	}
+    	
+    	int n ;
+    	try {
+    		n = Integer.parseInt(txtIng.getText()) ;
+    	} catch(NumberFormatException ex) {
+    		txtResult.appendText("ERRORE: numero di ingegneri è obbligatorio e deve essere un numero\n");
+    		return ;
+    	}
+    	
+    	Map<Genes, Integer> studiati = model.simulaIngegneri(start, n) ;
+    	
+    	if(studiati==null) {
+    		txtResult.appendText("ERRORE: il gene selezionato è isolato\n");
+    	} else {
+    		txtResult.appendText("Risultato simulazione\n");
+    		for(Genes g: studiati.keySet()) {
+    			txtResult.appendText(g+ " "+ studiati.get(g)+ "\n");
+    		}
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -69,11 +121,15 @@ public class FXMLController {
         assert txtIng != null : "fx:id=\"txtIng\" was not injected: check your FXML file 'Scene.fxml'.";
         assert btnSimula != null : "fx:id=\"btnSimula\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
-
+        btnGeniAdiacenti.setDisable(true);
+        btnSimula.setDisable(true);
+        cmbGeni.setDisable(true);
+        txtIng.setDisable(true);
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	
     }
     
 }
