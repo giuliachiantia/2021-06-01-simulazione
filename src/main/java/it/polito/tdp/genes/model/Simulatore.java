@@ -10,8 +10,6 @@ import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-
-
 public class Simulatore {
 	
 	//input
